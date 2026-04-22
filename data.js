@@ -10,8 +10,8 @@ export const fileList = [
                 title:"oracle", 
                 link:"#",
                 children:[
-                    { id:"1-2-1", icon:"📝",  title:"1.Oracle 常用知识手册", link:"/src/note/oracle/1.Oracle 常用知识手册.html" },
-                    { id:"1-2-2", icon:"📝",  title:"2.Oracle-CTE的使用场景", link:"/src/note/oracle/2.Oracle-CTE的使用场景.html" }
+                    { id:"1-2-1", icon:"📝",  title:"1.Oracle 常用知识手册", link:"/sharks/src/note/oracle/1.Oracle 常用知识手册.html" },
+                    { id:"1-2-2", icon:"📝",  title:"2.Oracle-CTE的使用场景", link:"/sharks/src/note/oracle/2.Oracle-CTE的使用场景.html" }
                 ]
             },
             { id:"1-3", icon:"📂", title:"linux", link:"#" },
@@ -22,8 +22,8 @@ export const fileList = [
         id:"2",
         title:"其他",
         children:[
-            { id:"2-1", icon:"🎨", title:"小游戏", link:"/src/other/snake/index.html" },
-            { id:"2-2", icon:"📝", title:"Webpack5", link:"/src/other/webpack/index.html" } 
+            { id:"2-1", icon:"🎨", title:"小游戏", link:"/sharks/src/other/snake/index.html" },
+            { id:"2-2", icon:"📝", title:"Webpack5", link:"/sharks/src/other/webpack/index.html" } 
         ]
     }
 ]
