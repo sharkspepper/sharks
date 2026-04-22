@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle 常用知识手册 | 核心语法·性能调优·PL/SQL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: #eef2f5;
+            color: #1a2c3e;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        /* 头部区域 */
+        .hero {
+            background: linear-gradient(135deg, #8b2c1d 0%, #b53b2a 50%, #c44531 100%);
+            color: white;
+            padding: 2.8rem 3rem;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.75rem;
+        }
+        .hero p {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            max-width: 85%;
+        }
+        .hero .badge-group {
+            margin-top: 1rem;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* 内容主体 */
+        .content {
+            padding: 2rem 2.5rem;
+        }
+
+        /* 章节卡片 */
+        .section-card {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #e2edf2;
+            margin-bottom: 2rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .section-card:hover {
+            border-color: #cfdfe8;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .section-header {
+            background: #f9fbfd;
+            padding: 1rem 1.8rem;
+            border-bottom: 2px solid #e5eef4;
+            border-radius: 24px 24px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-header h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #b53b2a;
+        }
+        .section-header .icon {
+            font-size: 1.8rem;
+        }
+        .section-body {
+            padding: 1.6rem 1.8rem;
+        }
+
+        /* 代码块样式 */
+        pre {
+            background: #1e2f3a;
+            color: #eef4ff;
+            padding: 1.2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            margin: 1.2rem 0;
+            box-shadow: inset 0 0 0 1px #2e4a62;
+        }
+        code {
+            font-family: 'Fira Code', monospace;
+            background: #eef2f6;
+            padding: 0.2rem 0.45rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #c44531;
+        }
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0;
+            font-size: 0.9rem;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #d4dee6;
+            padding: 10px 14px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .data-table th {
+            background: #eef3f9;
+            font-weight: 700;
+            color: #1f4e6e;
+        }
+        .tip-note {
+            background: #eef6fc;
+            border-left: 5px solid #2c7cb6;
+            padding: 0.8rem 1.2rem;
+            border-radius: 14px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .warning-note {
+            background: #fff4e5;
+            border-left: 5px solid #f5a623;
+            padding: 0.8rem 1.2rem;
+            border-radius: 14px;
+            margin: 1rem 0;
+        }
+        .grid-2col {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin: 1rem 0;
+        }
+        .info-card {
+            flex: 1;
+            background: #fafef9;
+            border: 1px solid #cfe3cf;
+            border-radius: 18px;
+            padding: 1rem;
+        }
+        .footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2edf2;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #4a627a;
+        }
+        @media (max-width: 780px) {
+            .content { padding: 1rem; }
+            .section-body { padding: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>🔥 Oracle 常用知识手册</h1>
+        <p>开发 · 调优 · PL/SQL · 日常运维必备 | 涵盖 12c/19c 核心特性</p>
+        <div class="badge-group">
+            <span class="badge">📌 伪列/分页</span>
+            <span class="badge">⚡ 分析函数</span>
+            <span class="badge">🌲 层次查询</span>
+            <span class="badge">💎 PL/SQL</span>
+            <span class="badge">🚀 执行计划</span>
+            <span class="badge">⏱️ 闪回查询</span>
+        </div>
+    </div>
+    <div class="content">
+        <!-- 1. 基础查询与函数 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">🔍</span>
+                <h2>一、基础查询 &amp; 常用函数</h2>
+            </div>
+            <div class="section-body">
+                <p><strong>伪列：ROWNUM / ROWID</strong> — ROWNUM 对结果集编号，ROWID 为物理地址。</p>
+                <pre><code>-- 取前5行
+SELECT ROWNUM, empno, ename FROM emp WHERE ROWNUM <= 5;
+-- 利用ROWID快速定位
+SELECT * FROM emp WHERE ROWID = 'AAAR3sAAEAAAACXAAA';</code></pre>
+                <p><strong>字符串函数速查</strong> (|| 拼接, NVL, DECODE)</p>
+                <pre><code>SELECT 
+    'A'||'-'||'B' AS concat_demo,
+    NVL(NULL, '默认值') AS nvl_eg,
+    DECODE(2,1,'一',2,'二','其他') AS decode_eg,
+    SUBSTR('Oracle',2,3) AS sub_demo,   -- 'rac'
+    INSTR('HelloWorld','o') AS pos,
+    REPLACE('Hello World','World','Oracle') AS rep
+FROM DUAL;</code></pre>
+                <p><strong>日期函数核心</strong></p>
+                <pre><code>SELECT 
+    SYSDATE, 
+    SYSDATE + 1 AS 明天,
+    MONTHS_BETWEEN(SYSDATE, DATE '2025-01-01') AS 相差月数,
+    LAST_DAY(SYSDATE) AS 月末,
+    TRUNC(SYSDATE, 'MM') AS 月初,
+    TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mi:ss') AS 格式化时间
+FROM DUAL;</code></pre>
+                <div class="tip-note">💡 转换三剑客: TO_CHAR, TO_DATE, TO_NUMBER — 灵活处理数据类型转换。</div>
+            </div>
+        </div>
+
+        <!-- 2. 高级查询：分页/分析函数/层次查询 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">📈</span>
+                <h2>二、高级查询技巧</h2>
+            </div>
+            <div class="section-body">
+                <p><strong>标准分页 (ROWNUM 三层嵌套)</strong></p>
+                <pre><code>SELECT * FROM (
+    SELECT t.*, ROWNUM rn FROM (
+        SELECT * FROM emp ORDER BY empno
+    ) t WHERE ROWNUM <= 20
+) WHERE rn >= 11;   -- 第2页,每页10条
+-- 12c+ 支持 OFFSET FETCH
+SELECT * FROM emp ORDER BY empno OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY;</code></pre>
+                <p><strong>分析函数 (窗口函数) —— 排名/累计/前后行</strong></p>
+                <pre><code>SELECT empno, deptno, sal,
+    ROW_NUMBER() OVER(PARTITION BY deptno ORDER BY sal DESC) rn,
+    RANK()       OVER(PARTITION BY deptno ORDER BY sal DESC) rk,
+    SUM(sal) OVER(PARTITION BY deptno) AS dept_total,
+    LAG(sal,1,0) OVER(ORDER BY empno) AS prev_sal
+FROM emp;</code></pre>
+                <p><strong>🌲 层次查询 (树形结构) </strong></p>
+                <pre><code>SELECT employee_id, manager_id, LEVEL,
+       LPAD(' ', 2*(LEVEL-1)) || ename AS tree_name
+FROM emp
+START WITH manager_id IS NULL
+CONNECT BY PRIOR employee_id = manager_id
+ORDER SIBLINGS BY ename;</code></pre>
+                <p><strong>集合运算：UNION / INTERSECT / MINUS</strong></p>
+            </div>
+        </div>
+
+        <!-- 3. DDL & DML 常用操作 + 索引/约束 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">📐</span>
+                <h2>三、DDL / DML & 索引约束</h2>
+            </div>
+            <div class="section-body">
+                <pre><code>-- 创建表(带注释)
+CREATE TABLE employees (
+    id NUMBER(10) PRIMARY KEY,
+    name VARCHAR2(50) NOT NULL,
+    salary NUMBER(10,2) CHECK (salary > 0),
+    hire_date DATE DEFAULT SYSDATE
+);
+COMMENT ON TABLE employees IS '员工表';
+
+-- 索引(普通/唯一/函数索引)
+CREATE INDEX idx_emp_dept ON emp(deptno);
+CREATE UNIQUE INDEX idx_emp_ename ON emp(ename);
+CREATE INDEX idx_emp_upper_name ON emp(UPPER(ename));
+
+-- 约束管理
+ALTER TABLE emp ADD CONSTRAINT pk_emp PRIMARY KEY(empno);
+ALTER TABLE emp ADD CONSTRAINT fk_dept FOREIGN KEY(deptno) REFERENCES dept(deptno);
+-- 禁用/启用
+ALTER TABLE emp DISABLE CONSTRAINT fk_dept;</code></pre>
+                <div class="tip-note">📌 位图索引适用于低基数列，反向键索引减少热块竞争。</div>
+            </div>
+        </div>
+
+        <!-- 4. PL/SQL 基础 (块/过程/函数/游标) -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">⚙️</span>
+                <h2>四、PL/SQL 编程核心</h2>
+            </div>
+            <div class="section-body">
+                <p><strong>匿名块 & 异常处理</strong></p>
+                <pre><code>DECLARE
+    v_ename emp.ename%TYPE;
+BEGIN
+    SELECT ename INTO v_ename FROM emp WHERE empno = 7369;
+    DBMS_OUTPUT.PUT_LINE('姓名:'||v_ename);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('无数据');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('错误:'||SQLERRM);
+END;
+/</code></pre>
+                <p><strong>存储过程 + 函数示例</strong></p>
+                <pre><code>CREATE OR REPLACE PROCEDURE raise_sal(p_empno NUMBER, p_percent NUMBER) AS
+BEGIN
+    UPDATE emp SET sal = sal * (1 + p_percent/100) WHERE empno = p_empno;
+    COMMIT;
+END;
+/
+
+CREATE OR REPLACE FUNCTION get_annual(p_empno NUMBER) RETURN NUMBER IS
+    v_sal emp.sal%TYPE;
+BEGIN
+    SELECT sal INTO v_sal FROM emp WHERE empno = p_empno;
+    RETURN v_sal * 12;
+END;
+/</code></pre>
+                <p><strong>游标 (显式 & FOR循环)</strong></p>
+                <pre><code>BEGIN
+    FOR rec IN (SELECT ename, sal FROM emp WHERE deptno=20) LOOP
+        DBMS_OUTPUT.PUT_LINE(rec.ename||' - '||rec.sal);
+    END LOOP;
+END;
+/</code></pre>
+            </div>
+        </div>
+
+        <!-- 5. 性能优化 + 执行计划 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">🚀</span>
+                <h2>五、性能优化 & 执行计划</h2>
+            </div>
+            <div class="section-body">
+                <p><strong>查看执行计划三种方式</strong></p>
+                <pre><code>-- 1. EXPLAIN PLAN
+EXPLAIN PLAN FOR SELECT * FROM emp WHERE deptno=10;
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+-- 2. AUTOTRACE (SQL*Plus)
+SET AUTOTRACE TRACEONLY;
+SELECT * FROM emp;
+
+-- 3. 查看真实游标执行计划
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR('sql_id', NULL, 'ALLSTATS LAST'));</code></pre>
+                <p><strong>常用优化技巧</strong></p>
+                <ul style="margin-left:1.5rem; margin-bottom:0.8rem;">
+                    <li>✔ 避免在索引列上使用函数：<code>UPPER(name)= 'SMITH'</code> → 可改用函数索引</li>
+                    <li>✔ 用 EXISTS 代替 IN (当子查询返回大量数据)</li>
+                    <li>✔ 合理使用 <code>/*+ INDEX(table_name idx_name) */</code> 提示</li>
+                    <li>✔ 批量 DML 使用 FORALL 减少上下文切换</li>
+                </ul>
+                <div class="warning-note">📊 统计信息过时会导致执行计划错误，定期收集: <code>DBMS_STATS.GATHER_TABLE_STATS('SCOTT','EMP');</code></div>
+            </div>
+        </div>
+
+        <!-- 6. 实用系统视图 + 闪回特性 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">🗂️</span>
+                <h2>六、常用数据字典 & 闪回技术</h2>
+            </div>
+            <div class="section-body">
+                <div class="grid-2col">
+                    <div class="info-card">
+                        <strong>📌 用户视图</strong><br>
+                        USER_TABLES · USER_INDEXES · USER_CONSTRAINTS<br>
+                        USER_SOURCE (存储过程源码)<br>
+                        USER_TAB_COLUMNS (列信息)
+                    </div>
+                    <div class="info-card">
+                        <strong>📌 动态性能视图</strong><br>
+                        V$SESSION · V$SQL · V$LOCK · V$PROCESS<br>
+                        用于实时监控会话、锁等待和SQL统计
+                    </div>
+                </div>
+                <p><strong>闪回查询 (挽回误操作)</strong></p>
+                <pre><code>-- 查询15分钟前数据
+SELECT * FROM emp AS OF TIMESTAMP (SYSTIMESTAMP - INTERVAL '15' MINUTE);
+
+-- 闪回表到特定时间点 (需启用行移动)
+ALTER TABLE emp ENABLE ROW MOVEMENT;
+FLASHBACK TABLE emp TO TIMESTAMP (SYSTIMESTAMP - INTERVAL '30' MINUTE);</code></pre>
+                <p><strong>序列 / 同义词 / 物化视图</strong></p>
+                <pre><code>CREATE SEQUENCE seq_emp_id START WITH 100 INCREMENT BY 1;
+SELECT seq_emp_id.NEXTVAL FROM DUAL;
+CREATE SYNONYM my_emp FOR scott.emp;
+CREATE MATERIALIZED VIEW mv_sum_sal REFRESH FAST ON COMMIT AS SELECT deptno,SUM(sal) FROM emp GROUP BY deptno;</code></pre>
+            </div>
+        </div>
+
+        <!-- 7. 错误代码速查 + 命令行参考 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">⚠️</span>
+                <h2>七、常见错误代码 & SQL*Plus 快捷命令</h2>
+            </div>
+            <div class="section-body">
+                <table class="data-table">
+                    <thead><tr><th>错误代码</th><th>含义</th><th>解决方式</th></tr></thead>
+                    <tbody>
+                        <tr><td>ORA-00942</td><td>表或视图不存在</td><td>检查拼写/大小写/当前用户权限</td></tr>
+                        <tr><td>ORA-00904</td><td>无效标识符</td><td>确认列名是否存在</td></tr>
+                        <tr><td>ORA-00001</td><td>违反唯一约束</td><td>去重或删除重复数据</td></tr>
+                        <tr><td>ORA-02291</td><td>违反外键约束</td><td>先插入父表记录</td></tr>
+                        <tr><td>ORA-06550</td><td>PL/SQL编译错误</td><td><code>SHOW ERRORS</code> 查看详情</td></tr>
+                        <tr><td>ORA-30036</td><td>回滚表空间不足</td><td>增加undo表空间或优化大事务</td></tr>
+                    </tbody>
+                </table>
+                <p><strong>常用 SQL*Plus 命令</strong></p>
+                <pre><code>SET LINESIZE 200
+SET PAGESIZE 100
+SET SERVEROUTPUT ON      -- 打印dbms_output
+DESC emp                 -- 查看表结构
+SPOOL report.txt         -- 导出结果
+-- 执行脚本
+@/path/script.sql</code></pre>
+            </div>
+        </div>
+
+        <!-- 8. 数据类型与事务控制速查 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">📦</span>
+                <h2>八、数据类型 & 事务隔离</h2>
+            </div>
+            <div class="section-body">
+                <table class="data-table">
+                    <thead><tr><th>数据类型</th><th>说明</th><th>典型使用场景</th></tr></thead>
+                    <tbody>
+                        <tr><td>NUMBER(p,s)</td><td>精确数字</td><td>金额、数量</td></tr>
+                        <tr><td>VARCHAR2(n)</td><td>变长字符串(推荐)</td><td>名称、描述</td></tr>
+                        <tr><td>CHAR(n)</td><td>定长字符串</td><td>固定代码</td></tr>
+                        <tr><td>DATE</td><td>日期+时间(秒)</td><td>业务时间戳</td></tr>
+                        <tr><td>CLOB/BLOB</td><td>大文本/二进制</td><td>文档、图片</td></tr>
+                    </tbody>
+                </table>
+                <div class="tip-note">🔁 事务控制: COMMIT, ROLLBACK, SAVEPOINT sp1; ROLLBACK TO sp1;</div>
+                <pre><code>-- 示例: 设置保存点
+UPDATE accounts SET balance = balance - 100 WHERE id=1;
+SAVEPOINT sp_deduct;
+UPDATE accounts SET balance = balance + 100 WHERE id=2;
+-- 若发现错误回滚到保存点
+ROLLBACK TO sp_deduct;
+COMMIT;</code></pre>
+            </div>
+        </div>
+
+        <!-- 9. 实用诊断片段 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">🩺</span>
+                <h2>九、日常运维 & 诊断片段</h2>
+            </div>
+            <div class="section-body">
+                <p><strong>查看当前会话锁等待</strong></p>
+                <pre><code>SELECT a.sid, a.serial#, b.id1, c.sql_text 
+FROM v$session a, v$lock b, v$sql c 
+WHERE a.sid = b.sid AND a.sql_id = c.sql_id AND b.block > 0;</code></pre>
+                <p><strong>查看最消耗资源的SQL (过去一小时)</strong></p>
+                <pre><code>SELECT sql_id, cpu_time, elapsed_time, buffer_gets, sql_text
+FROM v$sql
+WHERE last_active_time > SYSDATE - 1/24
+ORDER BY cpu_time DESC
+FETCH FIRST 10 ROWS ONLY;</code></pre>
+                <p><strong>表空间使用率</strong></p>
+                <pre><code>SELECT tablespace_name, ROUND(SUM(bytes)/1024/1024,2) MB,
+       ROUND(SUM(maxbytes)/1024/1024,2) max_mb
+FROM dba_data_files GROUP BY tablespace_name;</code></pre>
+                <div class="warning-note">🔐 生产环境慎用自动undo retention调整，避免ORA-01555快照过旧。</div>
+            </div>
+        </div>
+
+        <!-- 10. 总结/快速备忘录 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="icon">📘</span>
+                <h2>十、快速记忆 & 最佳实践</h2>
+            </div>
+            <div class="section-body">
+                <ul style="margin-left:1.5rem;">
+                    <li><strong>分页模板</strong>：ROWNUM 三层 + 排序子查询，12c后推荐OFFSET FETCH。</li>
+                    <li><strong>避免隐式转换</strong>：类型不匹配导致索引失效。</li>
+                    <li><strong>批量DML</strong>：FORALL + BULK COLLECT 提升性能。</li>
+                    <li><strong>绑定变量</strong>：减少硬解析，提高共享池命中率。</li>
+                    <li><strong>执行计划稳定</strong>：SQL Profile 或 SQL Plan Baseline。</li>
+                </ul>
+                <div class="tip-note" style="margin-top: 12px;">
+                    🧠 Oracle 内核精华: 一致性读、回滚段、多版本并发控制(CR) 是理解性能问题的基石。
+                </div>
+                <p style="margin-top: 1rem;">✅ 本文涵盖日常开发90%以上的常用知识，建议收藏，遇到具体场景可针对性查阅。</p>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        📖 Oracle 常用知识手册 | 版本适用: 11gR2 / 12c / 19c  | 生成时间: 2026-04-21<br>
+        专注 SQL 优化 · PL/SQL 开发 · 运维必备
+    </div>
+</div>
+</body>
+</html>

@@ -1,10 +1,65 @@
 <!DOCTYPE html>
-<html>
-<head>
-   <meta charset="utf-8">
-   <title>首页</title>
-</head>
-<body>
-  <div>首页</div>
-</body>
+<html lang="zh-CN">
+
+    <head>
+        <meta charset="utf-8">
+        <title>目录</title>
+        <link rel="icon" href="/imgs/favicon.ico">
+        <link rel="stylesheet" href="/css/index.css">
+        <script src="/js/vue@2.7.14.js"></script>
+    </head>
+
+    <body>
+        <div class="container" id="app">
+            <div class="header"> 目录 </div>
+
+            <div class="file-list">
+                <div v-for="item in fileList" :key="item.id">
+                    <div class="section-title">{{ item.title }}</div>
+                    <div class="folder-item" v-for="i in item.children" :key="i.id">
+                        <div class="folder-header" @click="toggleFolder(i)">
+                            <a :href="i.link === '#' ? 'javascript:void(0)' : i.link" :target="i.link === '#' ? '' : '_blank'">
+                                <span class="icon">{{ i.icon }}</span>
+                                <span class="name">{{ i.title }}</span>
+                                <span class="arrow" v-if="i.children && i.children.length">
+                                    {{ expanded[i.id] ? '▼' : '▶' }}
+                                </span>
+                            </a>
+                        </div>
+
+                        <div class="file-items" v-if="expanded[i.id]">
+                            <div class="file-item" v-for="j in i.children" :key="j.id">
+                                <a :href="j.link">
+                                    <span class="icon">{{ j.icon }}</span>
+                                    <span class="name">{{ j.title }}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="status">
+                共 {{ fileList.length }} 个项目 | 点击文件夹查看文件，点击文件可跳转
+            </div>
+        </div>
+    </body>
+    <script type="module">
+        import { fileList } from "./data.js"
+        new Vue({
+            el: "#app",
+            data: {
+                fileList,
+                expanded: {}
+            },
+            methods: {
+                toggleFolder(item) {
+                    if (item.children && item.children.length) {
+                        this.$set(this.expanded, item.id, !this.expanded[item.id]);
+                    }
+                }
+            }
+        })
+    </script>
 </html>

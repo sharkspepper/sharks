@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL CTE (公用表表达式) 使用场景完全指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: #f0f4f8;
+            color: #1a2a3a;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #0b2b44 0%, #1a4a6f 100%);
+            color: white;
+            padding: 2.5rem 2.8rem;
+        }
+
+        .header h1 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 0.6rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            max-width: 85%;
+        }
+
+        .badge {
+            background: #ffb347;
+            color: #2c2c2c;
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.8rem;
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 2rem 2.5rem;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            border: 1px solid #e2edf2;
+            margin-bottom: 2rem;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            border-color: #cbdde6;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            background: #f8fafc;
+            padding: 1.2rem 1.8rem;
+            border-bottom: 2px solid #e0ecf3;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h2 {
+            font-size: 1.55rem;
+            font-weight: 600;
+            color: #0f3b5c;
+        }
+
+        .card-header .emoji {
+            font-size: 1.8rem;
+        }
+
+        .card-body {
+            padding: 1.5rem 1.8rem;
+        }
+
+        /* 代码块 */
+        pre {
+            background: #1e2f3d;
+            color: #eef4ff;
+            padding: 1.2rem;
+            border-radius: 14px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            margin: 1rem 0;
+            box-shadow: inset 0 0 0 1px #2d4a6e;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: #eef2f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #c7254e;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .note {
+            background: #eef6fc;
+            border-left: 5px solid #2c7cb6;
+            padding: 0.8rem 1.2rem;
+            border-radius: 14px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .warning {
+            background: #fff4e5;
+            border-left: 5px solid #f5a623;
+            padding: 0.8rem 1.2rem;
+            border-radius: 14px;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid #d4dee6;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef3f9;
+            font-weight: 600;
+        }
+
+        .comparison {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .comp-card {
+            flex: 1;
+            min-width: 180px;
+            background: #f9fdfe;
+            border-radius: 18px;
+            border: 1px solid #d4e2ec;
+            padding: 1rem;
+        }
+
+        .footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2edf2;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #4a627a;
+        }
+
+        @media (max-width: 750px) {
+            .content {
+                padding: 1.2rem;
+            }
+            .card-header h2 {
+                font-size: 1.3rem;
+            }
+            .header p {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📌 CTE (公用表表达式)</h1>
+        <p>Common Table Expression · 优雅简化复杂SQL · 递归查询 · 可读性革命</p>
+        <div class="badge">✨ 使用场景 + 实战对比 + 性能建议</div>
+    </div>
+    <div class="content">
+
+        <!-- 简介 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🧩</span>
+                <h2>什么是 CTE？</h2>
+            </div>
+            <div class="card-body">
+                <p>CTE（Common Table Expression）是一个<strong>临时的、命名的结果集</strong>，它存在于单个SQL语句的执行范围内（SELECT / INSERT / UPDATE / DELETE）。<br>
+                你可以把它看作<strong>“一个可以在主查询中多次引用的临时视图”</strong>，极大提升复杂查询的可读性和可维护性。</p>
+                <pre><code>WITH cte_name AS (
+    SELECT col1, col2 FROM table WHERE condition
+)
+SELECT * FROM cte_name;</code></pre>
+                <div class="note">✅ 核心优势：步骤化、可复用、支持递归、逻辑清晰</div>
+            </div>
+        </div>
+
+        <!-- 场景1：复杂查询步骤拆分 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🔧</span>
+                <h2>1️⃣ 复杂查询步骤拆分（告别嵌套地狱）</h2>
+            </div>
+            <div class="card-body">
+                <p>当SQL嵌套超过3层，可读性断崖式下跌。CTE让每一步都有名字，像写文档一样写SQL。</p>
+                <pre><code>-- ❌ 传统嵌套写法（难以维护）
+SELECT department, AVG(salary)
+FROM (
+    SELECT department, salary,
+           ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) as rn
+    FROM (
+        SELECT * FROM employees WHERE status = 'active'
+    ) active_emp
+) ranked
+WHERE rn <= 3
+GROUP BY department;
+
+-- ✅ CTE 分步优雅版
+WITH active_employees AS (
+    SELECT * FROM employees WHERE status = 'active'
+),
+ranked_employees AS (
+    SELECT department, salary,
+           ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) as rn
+    FROM active_employees
+)
+SELECT department, AVG(salary)
+FROM ranked_employees
+WHERE rn <= 3
+GROUP BY department;</code></pre>
+            </div>
+        </div>
+
+        <!-- 场景2：递归查询（树形数据） -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🌳</span>
+                <h2>2️⃣ 递归CTE · 树形/层级数据</h2>
+            </div>
+            <div class="card-body">
+                <p>组织架构、菜单树、评论链、地铁线路、物料清单（BOM）—— 递归CTE是唯一内置解法。</p>
+                <pre><code>WITH RECURSIVE dept_tree AS (
+    -- 锚点：顶级部门
+    SELECT dept_id, dept_name, parent_id, 1 as level
+    FROM departments
+    WHERE dept_id = 'D001'
+    
+    UNION ALL
+    
+    -- 递归：子部门
+    SELECT d.dept_id, d.dept_name, d.parent_id, dt.level + 1
+    FROM departments d
+    INNER JOIN dept_tree dt ON d.parent_id = dt.dept_id
+)
+SELECT * FROM dept_tree ORDER BY level, dept_id;</code></pre>
+                <div class="warning">⚠️ 递归CTE必须有终止条件（确保不会无限循环），大多数数据库默认递归深度限制为100或32767。</div>
+            </div>
+        </div>
+
+        <!-- 场景3：多次引用同一个子查询 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🔄</span>
+                <h2>3️⃣ 多次复用同一子查询</h2>
+            </div>
+            <div class="card-body">
+                <p>如果同一个中间结果需要在主查询中多次引用（如JOIN、子查询条件），CTE可以避免重复代码。</p>
+                <pre><code>-- 示例：统计高价值订单 & 关联商品明细，同时再次筛选同批客户
+WITH high_value_orders AS (
+    SELECT order_id, customer_id, total_amount
+    FROM orders
+    WHERE total_amount > (SELECT AVG(total_amount) FROM orders)
+)
+SELECT h.order_id, h.total_amount, p.product_name, oi.quantity
+FROM high_value_orders h
+JOIN order_items oi ON h.order_id = oi.order_id
+JOIN products p ON oi.product_id = p.product_id
+WHERE h.customer_id IN (SELECT customer_id FROM high_value_orders);</code></pre>
+            </div>
+        </div>
+
+        <!-- 场景4：临时替代视图 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">👓</span>
+                <h2>4️⃣ 临时视图（一次性中间表）</h2>
+            </div>
+            <div class="card-body">
+                <p>某些中间结果只在当前查询有效，不值得创建持久化视图，CTE完美胜任。</p>
+                <pre><code>WITH employee_stats AS (
+    SELECT emp_id, emp_name, department,
+           sales_amount,
+           RANK() OVER (PARTITION BY department ORDER BY sales_amount DESC) as rank_in_dept,
+           COUNT(*) OVER (PARTITION BY department) as dept_count
+    FROM sales_records
+    WHERE sale_date >= DATE '2026-01-01'
+)
+SELECT emp_name, department, sales_amount
+FROM employee_stats
+WHERE rank_in_dept <= dept_count * 0.1;   -- 各部门前10%精英</code></pre>
+            </div>
+        </div>
+
+        <!-- 场景5：数据去重/清洗 + 窗口函数组合 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🧹</span>
+                <h2>5️⃣ 数据去重 & 分组首条记录</h2>
+            </div>
+            <div class="card-body">
+                <pre><code>-- 删除重复订单(保留最新)
+WITH duplicates AS (
+    SELECT order_id, order_date,
+           ROW_NUMBER() OVER (PARTITION BY order_no ORDER BY order_date DESC) as rn
+    FROM orders
+)
+DELETE FROM orders
+WHERE (order_id, order_date) IN (
+    SELECT order_id, order_date FROM duplicates WHERE rn > 1
+);
+
+-- 获取每个产品分类下销量最高的产品
+WITH ranked AS (
+    SELECT product_id, category, sales,
+           ROW_NUMBER() OVER (PARTITION BY category ORDER BY sales DESC) as rn
+    FROM products
+)
+SELECT * FROM ranked WHERE rn = 1;</code></pre>
+            </div>
+        </div>
+
+        <!-- 场景6：复杂行列转换 Pivot/Unpivot -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">📊</span>
+                <h2>6️⃣ 行列转换 / 数据透视</h2>
+            </div>
+            <div class="card-body">
+                <pre><code>WITH sales_data AS (
+    SELECT product_id, month, amount
+    FROM monthly_sales
+    WHERE year = 2026
+)
+SELECT product_id,
+       MAX(CASE WHEN month = 1 THEN amount END) as Jan,
+       MAX(CASE WHEN month = 2 THEN amount END) as Feb,
+       MAX(CASE WHEN month = 3 THEN amount END) as Mar
+FROM sales_data
+GROUP BY product_id;</code></pre>
+            </div>
+        </div>
+
+        <!-- 场景7：分页（兼容老旧数据库） -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">📄</span>
+                <h2>7️⃣ 分页查询（兼容模式）</h2>
+            </div>
+            <div class="card-body">
+                <p>在不支持OFFSET FETCH的旧版MySQL/SQL Server 2008等，利用ROW_NUMBER实现高效分页。</p>
+                <pre><code>WITH numbered AS (
+    SELECT t.*, ROW_NUMBER() OVER (ORDER BY create_time) as rn
+    FROM large_table t
+    WHERE status = 'active'
+)
+SELECT * FROM numbered
+WHERE rn BETWEEN 11 AND 20;  -- 第2页，每页10条</code></pre>
+            </div>
+        </div>
+
+        <!-- 场景8：移动平均/累计聚合 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">📈</span>
+                <h2>8️⃣ 金融分析 · 移动平均 & 累计值</h2>
+            </div>
+            <div class="card-body">
+                <pre><code>WITH daily_sales AS (
+    SELECT sale_date, SUM(amount) as total_amount
+    FROM orders
+    GROUP BY sale_date
+)
+SELECT sale_date, total_amount,
+       AVG(total_amount) OVER (ORDER BY sale_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as ma_7days,
+       SUM(total_amount) OVER (ORDER BY sale_date) as cumulative_revenue
+FROM daily_sales
+ORDER BY sale_date;</code></pre>
+            </div>
+        </div>
+
+        <!-- CTE vs 子查询 vs 临时表 对比表 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">⚖️</span>
+                <h2>CTE vs 子查询 vs 临时表 对比</h2>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr><th>特性</th><th>CTE</th><th>子查询</th><th>临时表</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>可读性</td><td>⭐⭐⭐⭐⭐</td><td>⭐⭐</td><td>⭐⭐⭐</td></tr>
+                        <tr><td>单语句内复用</td><td>✅ 多次引用</td><td>❌ 不可重用</td><td>✅ 可重用(但需单独创建)</td></tr>
+                        <tr><td>递归能力</td><td>✅ 支持递归</td><td>❌</td><td>❌</td></tr>
+                        <tr><td>性能(大数)</td><td>中等(优化器决定)</td><td>差(多次执行)</td><td>好(可建索引)</td></tr>
+                        <tr><td>作用域</td><td>单个SQL</td><td>单个SQL</td><td>会话/事务</td></tr>
+                        <tr><td>适用数据量</td><td>中小型/中型</td><td>小型</td><td>超大</td></tr>
+                    </tbody>
+                </table>
+                <div class="note">💡 提示：CTE注重代码优雅，临时表注重性能（尤其多次引用+大量数据）。可以混合使用！</div>
+            </div>
+        </div>
+
+        <!-- 性能优化与注意事项 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">⚡</span>
+                <h2>性能调优 & 注意事项</h2>
+            </div>
+            <div class="card-body">
+                <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                    <li><strong>✅ 优点：</strong>逻辑清晰、支持递归、一次定义多次使用，便于团队协作维护。</li>
+                    <li><strong>⚠️ 潜在问题：</strong>部分数据库（老版本SQL Server、某些MySQL版本）CTE可能被多次物化，导致额外开销；<br> 递归CTE深度过大可能影响性能或超过递归限制。</li>
+                    <li><strong>🚀 优化策略：</strong>
+                        <ul>
+                            <li>如果CTE被多次引用且数据量巨大 → 考虑物化提示（Oracle: <code>/*+ MATERIALIZE */</code>）或改用手动临时表。</li>
+                            <li>PostgreSQL 12+ 优化器会自动物化CTE，但可通过 <code>OFFSET 0</code> 技巧控制。</li>
+                            <li>SQL Server: 如果CTE被多次JOIN，推荐用临时表代替。</li>
+                            <li>递归CTE务必为递归成员添加 <code>WHERE</code> 终止条件，防止无限循环。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <pre><code>-- Oracle 强制物化示例
+WITH /*+ MATERIALIZE */ large_cte AS (SELECT ... )
+SELECT * FROM large_cte;
+
+-- SQL Server 用临时表替代高频CTE
+SELECT * INTO #temp FROM ( ... ) t;
+SELECT * FROM #temp t1 JOIN #temp t2 ...</code></pre>
+            </div>
+        </div>
+
+        <!-- 实战案例：你之前的问题（铁路机车检修）-->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🚆</span>
+                <h2>真实场景案例：铁路机车检修节点任务</h2>
+            </div>
+            <div class="card-body">
+                <p>复杂业务逻辑：三表关联 + 条件判断 + 格式化输出，CTE让整体一目了然。</p>
+                <pre><code>WITH node_task_data AS (
+    SELECT DISTINCT t.KC_ID, t.MP_ID, n4.pk_id AS NODE_ID,
+           nvl(d.gw, t.NODE_NAME) AS NODE_NAME,
+           CASE WHEN d.GW IS NULL THEN t.PK_ID END AS TARGET_NODE_ID,
+           d.KG_BZ, d.GW, t.DAY
+    FROM OP_LOCO_JX_NODE t
+    INNER JOIN OP_LOCO_JX_TASK d ON t.PK_ID = d.NODE_ID
+    LEFT JOIN OP_LOCO_JX_NODE n4 ON n4.KC_ID = t.KC_ID AND n4.JOB_TYPE = 4
+    WHERE t.JOB_TYPE IN (10, 750, 751) AND d.KG_BZ IS NOT NULL
+)
+SELECT KC_ID, MP_ID, NODE_ID,
+       KG_BZ || '[' || NODE_NAME || ']' AS GNAME,
+       '指定岗位工作人员' AS task_content,
+       '00' AS status,
+       TARGET_NODE_ID, KG_BZ, '0' AS is_gz, GW
+FROM node_task_data
+ORDER BY DAY, KG_BZ, GW;</code></pre>
+                <div class="note">📌 为什么用CTE？将繁杂的关联过滤封装，主查询只关注展示逻辑，后续扩展排序、聚合都非常干净。</div>
+            </div>
+        </div>
+
+        <!-- 使用建议总结 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">🎯</span>
+                <h2>什么时候选用 CTE？</h2>
+            </div>
+            <div class="card-body">
+                <div class="comparison">
+                    <div class="comp-card"><strong>✅ 推荐使用</strong><br>• 子查询超过2层嵌套<br>• 同一子查询需重复使用<br>• 树形/递归查询（组织、菜单）<br>• 分步数据处理（ETL风格）<br>• 想要增强SQL可维护性</div>
+                    <div class="comp-card"><strong>⚠️ 谨慎使用</strong><br>• 千万级大表且复用多次<br>• 极简单层查询没必要<br>• 需要索引加速中间结果（改用临时表）<br>• 数据库版本太老可能有坑</div>
+                </div>
+                <div class="warning">
+                    💎 设计原则：优先保证代码清晰、可维护，遇到性能瓶颈再分析是否替换为临时表或物化方式。绝大多数业务查询，CTE足够优雅高效。
+                </div>
+            </div>
+        </div>
+
+        <!-- 总结语 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="emoji">📘</span>
+                <h2>总结</h2>
+            </div>
+            <div class="card-body">
+                <p>CTE是SQL中“化繁为简”的核心工具，让复杂查询拥有结构化的逻辑层次。无论是数据分析、后端报表、递归查询，还是日常业务开发，<strong>掌握CTE都是成为SQL高手的必经之路</strong>。</p>
+                <p style="margin-top: 12px;">✅ 可读性 ✅ 递归能力 ✅ 模块化思维 —— 让团队协作更顺畅，代码如诗。</p>
+                <div class="note">🚀 下一次遇到超过15行的子查询，尝试用CTE重构，你会爱上这种感觉！</div>
+            </div>
+        </div>
+
+    </div> <!-- end content -->
+    <div class="footer">
+        📄 CTE 完全场景指南 · 基于SQL标准 | 适用于 Oracle / PostgreSQL / SQL Server / MySQL 8+ / SQLite 3.35+ <br>
+        生成时间: 2026-04-21 | 知识共享 · 提升SQL生产力
+    </div>
+</div>
+</body>
+</html>
